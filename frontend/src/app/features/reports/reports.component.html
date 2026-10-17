@@ -1,0 +1,35 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Reports</p>
+    <h2>Financial reports</h2>
+  </div>
+</section>
+
+<div class="summary-grid" *ngIf="summary; else loading">
+  <div class="panel">
+    <h3>Total income</h3>
+    <strong>{{ formatCurrency(summary.totalIncome) }}</strong>
+  </div>
+  <div class="panel">
+    <h3>Total expenditure</h3>
+    <strong>{{ formatCurrency(summary.totalExpenditure) }}</strong>
+  </div>
+  <div class="panel">
+    <h3>Current balance</h3>
+    <strong>{{ formatCurrency(summary.currentBalance) }}</strong>
+  </div>
+</div>
+
+<div class="panel" *ngIf="summary">
+  <h3>Highest expenditure categories</h3>
+  <ul class="report-list">
+    <li *ngFor="let item of summary.categoryWiseExpenditure | keyvalue">
+      <span>{{ item.key }}</span>
+      <strong>{{ formatCurrency(item.value) }}</strong>
+    </li>
+  </ul>
+</div>
+
+<ng-template #loading>
+  <div class="loading-state">Loading reports...</div>
+</ng-template>

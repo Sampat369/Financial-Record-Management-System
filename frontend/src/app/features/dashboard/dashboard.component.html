@@ -1,0 +1,111 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Overview</p>
+    <h2>Dashboard</h2>
+  </div>
+</section>
+
+<div class="dashboard" *ngIf="!isLoading && summary; else loading">
+  <div class="stats-grid">
+    <div class="stat-card income">
+      <span>Total income</span>
+      <strong>{{ formatCurrency(summary.totalIncome) }}</strong>
+    </div>
+    <div class="stat-card expense">
+      <span>Total expenditure</span>
+      <strong>{{ formatCurrency(summary.totalExpenditure) }}</strong>
+    </div>
+    <div class="stat-card balance">
+      <span>Current balance</span>
+      <strong>{{ formatCurrency(summary.currentBalance) }}</strong>
+    </div>
+    <div class="stat-card income">
+      <span>Current month income</span>
+      <strong>{{ formatCurrency(summary.currentMonthIncome) }}</strong>
+    </div>
+    <div class="stat-card expense">
+      <span>Current month expenditure</span>
+      <strong>{{ formatCurrency(summary.currentMonthExpenditure) }}</strong>
+    </div>
+    <div class="stat-card count">
+      <span>Transactions</span>
+      <strong>{{ summary.transactionCount }}</strong>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="panel chart-panel">
+      <h3>Monthly income vs expenditure</h3>
+      <div class="bar-chart" *ngIf="summary.monthlyIncomeVsExpense?.length; else emptyChart">
+        <div class="chart-row" *ngFor="let item of summary.monthlyIncomeVsExpense">
+          <div class="month-label">{{ item.month }}</div>
+          <div class="metric-group">
+            <div class="bar-pair">
+              <div
+                class="bar income-bar"
+                [style.height.%]="barHeight(item.income)"
+                [attr.aria-label]="'Income ' + formatCurrency(item.income)">
+              </div>
+              <div
+                class="bar expense-bar"
+                [style.height.%]="barHeight(item.expense)"
+                [attr.aria-label]="'Expenditure ' + formatCurrency(item.expense)">
+              </div>
+            </div>
+          </div>
+          <div class="legend-values">
+            <span class="income-text">{{ formatCurrency(item.income) }}</span>
+            <span class="expense-text">{{ formatCurrency(item.expense) }}</span>
+          </div>
+        </div>
+      </div>
+      <ng-template #emptyChart>
+        <p class="empty-state">No monthly data available.</p>
+      </ng-template>
+    </div>
+
+    <div class="panel chart-panel">
+      <h3>Highest expenditure categories</h3>
+      <div class="category-bars" *ngIf="summary.categoryWiseExpenditure | keyvalue as categoryData; else emptyData">
+        <div class="category-row" *ngFor="let item of categoryData">
+          <div class="category-name">{{ item.key }}</div>
+          <div class="category-bar-outer"><div class="category-bar" [style.width.%]="chartHeight(item.value)"></div></div>
+          <div class="category-value">{{ formatCurrency(item.value) }}</div>
+        </div>
+      </div>
+      <ng-template #emptyData>
+        <p class="empty-state">No category data available.</p>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Recent transactions</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transaction of summary.recentTransactions">
+          <td>{{ transaction.id }}</td>
+          <td><span class="pill" [class.income]="transaction.type === 'INCOME'" [class.expense]="transaction.type === 'EXPENSE'">{{ transaction.type }}</span></td>
+          <td>{{ transaction.description }}</td>
+          <td>{{ transaction.category }}</td>
+          <td>{{ formatCurrency(transaction.amount) }}</td>
+          <td>{{ transaction.transactionDate | date }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-state">Loading dashboard...</div>
+</ng-template>

@@ -1,0 +1,159 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Transactions</p>
+    <h2>Transaction history</h2>
+    <p class="page-description">Add new records, update existing ones, or remove records you no longer need.</p>
+  </div>
+  <button type="button" class="primary" (click)="startNewTransaction()">+ Add transaction</button>
+</section>
+
+<div class="content-grid">
+  <div class="panel form-panel" id="transaction-form-panel">
+    <h3>{{ editingId !== null ? 'Edit transaction #' + editingId : 'Add transaction' }}</h3>
+    <p class="edit-hint" *ngIf="editingId !== null">Update any transaction field below, then save your changes.</p>
+    <p class="feedback success" role="status" aria-live="polite" *ngIf="successMessage">{{ successMessage }}</p>
+    <p class="feedback failure" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <form [formGroup]="transactionForm" (ngSubmit)="submitTransaction()">
+      <div class="field-grid">
+        <div class="field">
+          <label>Type</label>
+          <select formControlName="type">
+            <option *ngFor="let option of typeOptions" [value]="option">{{ option }}</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <input formControlName="description" type="text" placeholder="Description" />
+          <small class="error" *ngIf="getFieldError('description')">{{ getFieldError('description') }}</small>
+        </div>
+
+        <div class="field">
+          <label>Category</label>
+          <select formControlName="category">
+            <option value="">Select category</option>
+            <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+          </select>
+          <small class="error" *ngIf="getFieldError('category')">{{ getFieldError('category') }}</small>
+        </div>
+
+        <div class="field">
+          <label>Amount (INR)</label>
+          <input formControlName="amount" type="number" min="0.01" step="0.01" />
+          <small class="error" *ngIf="getFieldError('amount')">{{ getFieldError('amount') }}</small>
+        </div>
+
+        <div class="field">
+          <label>Transaction date</label>
+          <input formControlName="transactionDate" type="date" />
+          <small class="error" *ngIf="getFieldError('transactionDate')">{{ getFieldError('transactionDate') }}</small>
+        </div>
+
+        <div class="field">
+          <label>Payment method</label>
+          <input formControlName="paymentMethod" type="text" maxlength="30" placeholder="Cash / Card / UPI / Bank Transfer" />
+        </div>
+
+        <div class="field full-width">
+          <label>Notes</label>
+          <textarea formControlName="notes" rows="3" maxlength="1000" placeholder="Optional notes"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="primary" [disabled]="isSubmitting || transactionForm.invalid">
+          {{ isSubmitting ? 'Submitting...' : (editingId !== null ? 'Update transaction' : 'Add transaction') }}
+        </button>
+        <button type="button" class="secondary" (click)="resetForm()">{{ editingId !== null ? 'Cancel edit' : 'Clear form' }}</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel filters-panel">
+    <h3>Filters</h3>
+    <div class="filter-grid">
+      <input type="search" [(ngModel)]="searchTerm" (ngModelChange)="loadTransactions()" placeholder="Search by description" />
+      <select [(ngModel)]="typeFilter" (ngModelChange)="loadTransactions()">
+        <option value="">All types</option>
+        <option value="INCOME">Income</option>
+        <option value="EXPENSE">Expense</option>
+      </select>
+      <select [(ngModel)]="categoryFilter" (ngModelChange)="loadTransactions()">
+        <option value="">All categories</option>
+        <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+      </select>
+      <input type="date" [(ngModel)]="startDate" (ngModelChange)="loadTransactions()" />
+      <input type="date" [(ngModel)]="endDate" (ngModelChange)="loadTransactions()" />
+    </div>
+  </div>
+</div>
+
+<div class="panel table-panel">
+  <table>
+    <thead>
+      <tr>
+        <th><button type="button" class="table-sort" (click)="sortBy('id')">ID</button></th>
+        <th>Type</th>
+        <th><button type="button" class="table-sort" (click)="sortBy('description')">Description</button></th>
+        <th><button type="button" class="table-sort" (click)="sortBy('category')">Category</button></th>
+        <th><button type="button" class="table-sort" (click)="sortBy('amount')">Amount</button></th>
+        <th><button type="button" class="table-sort" (click)="sortBy('transactionDate')">Date</button></th>
+        <th>Payment</th>
+        <th>Notes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let transaction of filteredTransactions">
+        <td>{{ transaction.id }}</td>
+        <td><span class="pill" [class.income]="transaction.type === 'INCOME'" [class.expense]="transaction.type === 'EXPENSE'">{{ transaction.type }}</span></td>
+        <td>{{ transaction.description }}</td>
+        <td>{{ transaction.category }}</td>
+        <td>{{ formatCurrency(transaction.amount) }}</td>
+        <td>{{ transaction.transactionDate | date }}</td>
+        <td>{{ transaction.paymentMethod || '—' }}</td>
+        <td>{{ transaction.notes || '—' }}</td>
+        <td class="action-buttons">
+          <button type="button" class="small secondary" (click)="viewTransaction(transaction)">View</button>
+          <button type="button" class="small secondary" (click)="editTransaction(transaction)">Edit</button>
+          <button
+            type="button"
+            class="small danger"
+            [disabled]="deletingId === transaction.id"
+            (click)="deleteTransaction(transaction.id)">
+            {{ deletingId === transaction.id ? 'Deleting...' : 'Delete' }}
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="transactions.length === 0">
+        <td class="empty-row" colspan="9">
+          No transactions found. Use “Add transaction” to create your first record, or adjust the filters.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination" *ngIf="transactions.length > 0">
+    <button type="button" class="small secondary" [disabled]="currentPage === 1" (click)="updatePage(currentPage - 1)">Prev</button>
+    <button type="button" *ngFor="let page of pageNumbers" class="small" [class.primary]="page === currentPage" [class.secondary]="page !== currentPage" (click)="updatePage(page)">{{ page }}</button>
+    <button type="button" class="small secondary" [disabled]="currentPage === totalPages" (click)="updatePage(currentPage + 1)">Next</button>
+  </div>
+</div>
+
+<div class="detail-modal" *ngIf="selectedTransaction">
+  <div class="detail-card">
+    <h3>Transaction details</h3>
+    <dl>
+      <div><dt>ID</dt><dd>{{ selectedTransaction.id }}</dd></div>
+      <div><dt>Type</dt><dd>{{ selectedTransaction.type }}</dd></div>
+      <div><dt>Description</dt><dd>{{ selectedTransaction.description }}</dd></div>
+      <div><dt>Category</dt><dd>{{ selectedTransaction.category }}</dd></div>
+      <div><dt>Amount</dt><dd>{{ formatCurrency(selectedTransaction.amount) }}</dd></div>
+      <div><dt>Date</dt><dd>{{ selectedTransaction.transactionDate | date }}</dd></div>
+      <div><dt>Payment</dt><dd>{{ selectedTransaction.paymentMethod || '—' }}</dd></div>
+      <div><dt>Notes</dt><dd>{{ selectedTransaction.notes || '—' }}</dd></div>
+    </dl>
+    <button type="button" class="primary" (click)="selectedTransaction = null">Close</button>
+  </div>
+</div>

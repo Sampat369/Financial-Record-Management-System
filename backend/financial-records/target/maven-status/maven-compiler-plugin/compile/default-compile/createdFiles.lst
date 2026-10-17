@@ -1,0 +1,10 @@
+com\financetracker\records\util\CategoryConstants.class
+com\financetracker\records\model\TransactionType.class
+com\financetracker\records\model\Transaction.class
+com\financetracker\records\service\TransactionService.class
+com\financetracker\records\dto\TransactionResponse.class
+com\financetracker\records\controller\ApiExceptionHandler.class
+com\financetracker\records\repository\TransactionRepository.class
+com\financetracker\records\controller\TransactionController.class
+com\financetracker\records\FinancialRecordsApplication.class
+com\financetracker\records\dto\TransactionRequest.class

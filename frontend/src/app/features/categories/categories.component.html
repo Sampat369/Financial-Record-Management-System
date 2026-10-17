@@ -1,0 +1,22 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Categories</p>
+    <h2>Expense and income categories</h2>
+  </div>
+</section>
+
+<div class="category-grid">
+  <div class="panel">
+    <h3>Expense categories</h3>
+    <ul>
+      <li *ngFor="let category of expenseCategories">{{ category }}</li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h3>Income categories</h3>
+    <ul>
+      <li *ngFor="let category of incomeCategories">{{ category }}</li>
+    </ul>
+  </div>
+</div>
